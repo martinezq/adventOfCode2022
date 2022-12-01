@@ -16,6 +16,6 @@
   },
   "homepage": "https://github.com/martinezq/adventOfCode2021#readme",
   "dependencies": {
-    "ramda": "^0.27.1"
+    "ramda": "^0.28.0"
   }
 }

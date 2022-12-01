@@ -6,6 +6,10 @@ U.runWrapper(parse, run);
 // --------------------------------------------
 
 function parse(lines) {
+    return R.splitWhenever(line => line === '', lines).map(x => x.map(Number));
+}
+/*
+function parse2(lines) {
     var result = [[]];
     var index = 0;
     
@@ -20,7 +24,7 @@ function parse(lines) {
     
     return result;
 }
-
+*/
 function run(data) {
 
     U.log('Hello');

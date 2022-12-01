@@ -6,19 +6,7 @@ U.runWrapper(parse, run);
 // --------------------------------------------
 
 function parse(lines) {
-    var result = [[]];
-    var index = 0;
-    
-    lines.forEach(line => {
-        if (line === '') {
-            index ++;
-            result[index] = [];
-        } else {
-            result[index].push(Number(line));
-        }
-    });
-    
-    return result;
+    return R.splitWhenever(line => line === '', lines).map(x => x.map(Number));
 }
 
 function run(data) {
