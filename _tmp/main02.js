@@ -35,19 +35,19 @@ function run(data) {
                 return '1';
             }).join('');
 
-            U.log("mappedAddrRange", mappedAddrRange);
+            // U.log("mappedAddrRange", mappedAddrRange);
 
             const floatingNum = mappedAddrRange.split('').filter(x => x === 'X').length;
 
-            U.log("floatingNum", floatingNum);
+            // U.log("floatingNum", floatingNum);
 
             const range = R.times(x => U.dec2bin(x, floatingNum).split('').map(Number), Math.pow(2, floatingNum));
 
-            U.log("range", range);
+            // U.log("range", range);
 
             const floatingPositions = mappedAddrRange.split('').map((x, i) => x === 'X' ? i : undefined).filter(x => x !== undefined);
 
-            U.log("floatingPositions", floatingPositions);
+            // U.log("floatingPositions", floatingPositions);
 
             range.forEach(r => {
                 const realAddr = mappedAddrRange.split('').map((x, i) => {
@@ -71,7 +71,7 @@ function run(data) {
     });
     
 
-    U.log(mem);
+    // U.log(mem);
 
     return R.reduce(R.add, 0, R.values(mem));
 }
