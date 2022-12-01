@@ -11,6 +11,13 @@ Go to this project directory and type:
 npm install
 ```
 
+## Init
+
+Generate new dayXX directory from template by running
+```
+npm run generate
+```
+
 ## Run
 
 CD to selected day and run main01.js (Part 1) or main02.js (Part 2).
