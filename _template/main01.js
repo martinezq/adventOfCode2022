@@ -3,7 +3,7 @@ const U = require('./utils');
 
 U.runWrapper(parse, run, {
     hideRaw: true,
-    hideParsed: true
+    hideParsed: false
 });
 
 // --------------------------------------------
