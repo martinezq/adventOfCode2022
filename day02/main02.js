@@ -17,50 +17,37 @@ function parse(lines) {
 // A,X - rock
 // B,Y - Paper
 // C,Z - Scissors
-
-function calculateResultScore(opp, my) {
-    if (opp === 'A' && my === 'X') return 3;
-    if (opp === 'B' && my === 'Y') return 3;
-    if (opp === 'C' && my === 'Z') return 3;
-
-    if (opp === 'A' && my === 'Y') return 6;
-    if (opp === 'A' && my === 'Z') return 0;
-
-    if (opp === 'B' && my === 'X') return 0;
-    if (opp === 'B' && my === 'Z') return 6;
-
-    if (opp === 'C' && my === 'X') return 6;
-    if (opp === 'C' && my === 'Y') return 0;
-}
-
 function calculateTotalScore(opp, my) {
-    let score = calculateResultScore(opp, my);
+    const matrix = {
+        'A X': 3 + 1,
+        'A Y': 6 + 2,
+        'A Z': 0 + 3,
+        'B X': 0 + 1,
+        'B Y': 3 + 2,
+        'B Z': 6 + 3,
+        'C X': 6 + 1,
+        'C Y': 0 + 2,
+        'C Z': 3 + 3
+    }
 
-    if (my == 'X') return score + 1;
-    if (my == 'Y') return score + 2;
-    if (my == 'Z') return score + 3;
+    return matrix[`${opp} ${my}`];
 }
 
 // X- lose, Y - draw, Z - loose
 function decideMyMove(opp, result) {
-    if (opp === 'A') {
-        if (result === 'X') return 'Z';
-        if (result === 'Y') return 'X';
-        if (result === 'Z') return 'Y';
-    }
+    const matrix = {
+        'A X': 'Z',
+        'A Y': 'X',
+        'A Z': 'Y',
+        'B X': 'X',
+        'B Y': 'Y',
+        'B Z': 'Z',
+        'C X': 'Y',
+        'C Y': 'Z',
+        'C Z': 'X'
+    };
 
-    if (opp === 'B') {
-        if (result === 'X') return 'X';
-        if (result === 'Y') return 'Y';
-        if (result === 'Z') return 'Z';
-    }
-
-    if (opp === 'C') {
-        if (result === 'X') return 'Y';
-        if (result === 'Y') return 'Z';
-        if (result === 'Z') return 'X';
-    }
-
+    return matrix[`${opp} ${result}`];
 }
 
 function run(data) {
