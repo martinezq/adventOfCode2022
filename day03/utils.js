@@ -69,11 +69,20 @@ function log(...x) {
  * @param  {...any} x
  */
 function logf(...x) {
+    const isSimpleType = (x) => !Array.isArray(x) && typeof x !== 'object';
+
+    const replacer = (key, value) => {
+        if (Array.isArray(value) && !Boolean(value.find(x => !isSimpleType(x)))) {
+            return 'Array: [' + value.toString() + ']';
+        } else {
+            return value;
+        }
+    };
+
     console.log(...x
         .map(i => {
-            if (Array.isArray(i)) return JSON.stringify(i, null, 2);
-            if (typeof i === 'object') return JSON.stringify(i, null, 2);
-            return i;
+            if (isSimpleType(i)) return i;
+            return JSON.stringify(i, replacer, 2);
         })
     );
 }
