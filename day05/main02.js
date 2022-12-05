@@ -9,30 +9,23 @@ U.runWrapper(parse, run, {
 // --------------------------------------------
 
 function parse(lines) {
-    const r = R.splitWhen(x => x.length < 2, lines);
+    const sections = R.splitWhen(R.isEmpty, lines);
 
-    const r1 = r[0].map(R.splitEvery(4));
-    const r2 = r1.map(x => x.map(R.trim));
+    const stackElements = sections[0].map(R.splitEvery(4));
+    const stackElementsTransposed = R.transpose(stackElements)
+    
+    const stacks = stackElementsTransposed
+        .map(R.dropLast(1))
+        .map(R.dropWhile(x => R.trim(x).length < 1))
+        .map(R.reverse)
+        .map(R.map(y => y.split('')[1]));
 
-    let result = [];
-
-    r2.forEach((x) => {
-        x.forEach((y, i) => {
-            if (y.length > 2) {
-                result[i] = result[i] || [];
-                result[i].push(y.split('')[1]);
-            }
-        })
-    });
-
-    result = result.map(r => R.reverse(r));
-
-    const moves = R.tail(r[1]).map(x => {
+    const moves = R.tail(sections[1]).map(x => {
         return U.parse(x, /move (\d+) from (\d+) to (\d+)/, ['num', 'from', 'to']);
     });
 
     return {
-        stack: result,
+        stacks,
         moves
     };
 }
@@ -43,19 +36,19 @@ function run(data) {
 
     // U.log('Hello');
 
-    let {stack, moves} = data;
+    let {stacks, moves} = data;
 
     moves.forEach(m => {
         const {num, from, to} = m;
-        const a = R.takeLast(num, stack[from - 1]);
-        stack[from - 1]= R.take(stack[from - 1].length - num, stack[from - 1]);
-        stack[to - 1] = R.concat(stack[to - 1], a);
+        const a = R.takeLast(num, stacks[from - 1]);
+        stacks[from - 1]= R.take(stacks[from - 1].length - num, stacks[from - 1]);
+        stacks[to - 1] = R.concat(stacks[to - 1], a);
         
     });
 
-    U.logf(stack);
+    U.logf(stacks);
 
-    const result = stack.map(x => x.pop()).join('');
+    const result = stacks.map(x => x.pop()).join('');
 
     return result;
 }
