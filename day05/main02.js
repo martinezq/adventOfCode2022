@@ -28,8 +28,7 @@ function parse(lines) {
     result = result.map(r => R.reverse(r));
 
     const moves = R.tail(r[1]).map(x => {
-        const y = x.split(' ').map(Number);
-        return [y[1], y[3], y[5]];
+        return U.parse(x, /move (\d+) from (\d+) to (\d+)/, ['num', 'from', 'to']);
     });
 
     return {
@@ -47,7 +46,7 @@ function run(data) {
     let {stack, moves} = data;
 
     moves.forEach(m => {
-        const [num, from, to] = m;
+        const {num, from, to} = m;
         const a = R.takeLast(num, stack[from - 1]);
         stack[from - 1]= R.take(stack[from - 1].length - num, stack[from - 1]);
         stack[to - 1] = R.concat(stack[to - 1], a);

@@ -44,7 +44,7 @@ function parse(str, regex, keys) {
     if (keys) {
         let result = {};
         keys.forEach((k, i) => result[k] = a[i]);
-        return result
+        return result;
     }
 
     return a;
