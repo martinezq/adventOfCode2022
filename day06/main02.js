@@ -18,18 +18,18 @@ function run(data) {
 
     // U.log('Hello');
 
-    let counter = 0;
     let result = 0;
+    const len = 14;
 
-    for (let i=0; i<data.length-4; i++) {
-        const list = R.take(14, R.drop(i, data));
-        if (R.uniq(list).length === 14) {
-            counter++;
+    for (let i = 0; i<data.length - len; i++) {
+        const list = R.take(len, R.drop(i, data));
+
+        if (R.uniq(list).length === len) {
             result = i + 1;
             break;
         }
     }
 
-    return result + 13;
+    return result + len - 1;
 }
 
