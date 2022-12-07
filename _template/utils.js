@@ -151,6 +151,8 @@ function matrixToTile(matrix) {
 
 const minA = (x) => x.reduce((p, c) => Math.min(p, c), Number.POSITIVE_INFINITY);
 const maxA = (x) => x.reduce((p, c) => Math.max(p, c), Number.NEGATIVE_INFINITY);
+const sumA = (x) => R.reduce(R.add, 0, x);
+
 const sortByNumber = R.sortBy(Number);
 
 function splitStringByLength(str, len) {
@@ -188,13 +190,57 @@ function bin2dec(x) {
     return parseInt(x, 2);
 }
 
+/*
+
+*/
+
+/**
+ * Process input
+ * @param {*} rules [object]
+ * @param {*} context [object]
+ * @param {*} input [string]
+ * 
+ * @example
+ * ```
+ *  const rules = {
+ *   '\\$ (cd) (.*)':    ([cmd, arg], context) => console.log('CMD', cmd, arg),
+ *   '\\$ (ls)':         ([cmd], context) => console.log('CMD', cmd),
+ *   '([0-9]+) (.*)':    ([size, name], context) => console.log('FILE', size, name),
+ *   'dir (.*)':         ([name], context) => console.log('DIR', name)
+ * }
+ * ```
+ */
+function processUsingRulesInternal(rules, context, input) {
+    let done = false;
+    R.keys(rules).forEach(key => {
+        if (done) return; // ignore
+
+        const re = RegExp(key);
+        const parsed = input.match(re);
+        
+        if (parsed) {
+            const res = rules[key](R.tail(parsed), context);
+            done = true;
+            return res;
+        } 
+    });
+
+    if (!done) {
+        log(' ---> WARNING: No rule found to match: ' + input + ' <---');
+    }
+}
+
+const processUsingRules = R.curry(processUsingRulesInternal);
+
 module.exports = {
     runWrapper,
     parse,
     log, logf, logm,
     minA, maxA, sortByNumber,
+    sumA,
     mapMatrix, filterMatrix,
     createMatrixFromPoints, matrixToTile,
     splitStringByLength,
-    dec2bin, bin2dec
+    dec2bin, bin2dec,
+    processUsingRules
 }
