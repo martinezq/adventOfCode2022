@@ -9,103 +9,108 @@ U.runWrapper(parse, run, {
 // --------------------------------------------
 
 function parse(lines) {
-    return lines;
-    return R.splitWhenever(x => R.startsWith('$', x), lines);
+    const step1 = R.flatten(lines.map(x => R.startsWith('$', x) ? ['$', R.tail(x.split(' ')).join(' ')] : x));
 
-    return lines.map(x => {
-        if (R.startsWith('$', x)) {
+    U.log('step 1', step1);
+
+    const step2 = R.splitWhenever(R.startsWith('$'), step1);
+    
+    U.log('step 2', step2);
+
+    return step2.map(c => {
+        if (c.length === 1) {
+            const [cmd, arg] = c[0].split(' ');
             return {
-                cmd: x.split(' ')[1],
-                args: x.split(' ')[2]
-            }
+                cmd,
+                arg,
+                output: []
+            } 
         } else {
             return {
-                output: ''
+                cmd: R.head(c),
+                output: R.tail(c).map(x => x.split(' ')).map(x => ({
+                    name: x[1],
+                    type: x[0] === 'dir' ? 'dir' : 'file',
+                    size: x[0] === 'dir' ? undefined : Number(x[0])
+                }))
             }
         }
-    });
-}
+    }); 
+}    
 
 // --------------------------------------------
 
-function calculateDirSize(fs) {
-    if (fs._size === undefined) {
-        const values = R.values(R.omit(['_parent', '_size', '_type'], fs));
-        fs._size = R.reduce((p, c) => p + calculateDirSize(c)._size, 0, values);
+function run(data) {
+
+    function calculateSizes(fs) {
+        fs.size = R.reduce((p, c) => p + calculateSizes(c).size, fs.size, fs.dirs);
+        return fs;
+    }
+    
+    
+    function findAllDirs(fs, buf) {
+        buf = buf || [];
+        fs.dirs.forEach(x => buf.push(x));
+        fs.dirs.forEach(x => findAllDirs(x, buf));
+    
+        return buf;
     }
 
-    return fs;
-}
-
-
-function flatFs(fs, buf) {
-    buf = buf || [];
-    const values = R.values(R.omit(['_parent', '_size', '_type'], fs));
-    const valuesDir = values.filter(x => x._type === 'dir');
-
-    valuesDir.forEach(x => buf.push(x));
-
-    valuesDir.forEach(x => flatFs(x, buf));
-
-    return buf;
-}
-
-function run(data) {
+    // ------------------------------------------------------------------------
 
     // U.log('Hello');
 
-    let fs = {};
+    let fs = { name: '/', dirs: [] };
     let curr = fs;
+    let stack = [fs];
 
-    data.forEach(line => {
-        if (R.startsWith('$ cd', line)) {
-            const arg = line.split(' ')[2];
-            if (arg === '/') {
-                curr = fs;
-            } else if (arg === '..') {
-                curr = curr._parent;
+    data.forEach(cmd => {
+        if (cmd.cmd === 'cd') {
+            if (cmd.arg === '/') {
+                stack = [fs];
+                curr = fs
+            } else if (cmd.arg === '..') {
+                 stack.pop();
+                 curr = R.last(stack);
             } else {
-                curr[arg] = curr[arg] || {
-                    _parent: curr,
-                    _type: 'dir'
-                };
-                curr = curr[arg];
+                const prev = curr;
+                const existing = prev.dirs.find(x => x.name === cmd.arg);
+
+                if (existing) {
+                    curr = prev.dirs.find(x => x.name === cmd.arg);
+                } else {
+                    curr = { name: cmd.arg, dirs: [] };
+                    prev.dirs.push(curr);
+                }
+                
+                stack.push(curr);
             }
-        } else {
-            if (R.startsWith('$ ls', line)) {
-                U.log(line);
-            } else if (R.startsWith('dir', line)) {
-                U.log(line);
-            } else {
-                const [size, name] = line.split(' ');
-                curr[name] = {
-                    _size: Number(size),
-                    _parent: curr,
-                    _type: 'file'
-                };
-            }
+        } else if (cmd.cmd === 'ls') {
+            const size = R.reduce(R.add, 0, cmd.output.filter(x => x.type === 'file').map(x => x.size));
+            curr.size = size;
         }
+
+        // U.log('stack', stack);
+        // U.log('curr', curr);
     });
 
-    fs = calculateDirSize(fs);
-    
-    const fFs = flatFs(fs);
+    U.logf('fs 1', fs);
 
-    // U.logf(R.omit('_parent', fs));
+    fs = calculateSizes(fs);
 
-    // const above = fFs.filter(x => x._size <= 100000).map(x => x._size);
+    U.logf('fs 2', fs);
 
-    const total = fs._size;
-    const max = 70000000;
+    const total = fs.size;
+    const dirs = findAllDirs(fs);
+    const sizes = dirs.map(x => x.size);
 
-    const sorted = R.sortBy(x => x._size, fFs);
+    U.logf('dirs', dirs);
+    U.logf('sizes', sizes);
 
-    const candidate = sorted.find(x => total - x._size < 40000000);
+    const sortedSizes = R.sortBy(R.identity, sizes);
 
-    U.log(total, candidate._size, total - candidate._size);
-
-    const result = candidate._size;
+    const result = sortedSizes.find(x => total - x < 40000000);
 
     return result;
-}
 
+}
