@@ -9,71 +9,53 @@ U.runWrapper(parse, run, {
 // --------------------------------------------
 
 function parse(lines) {
-    return lines.map(x => x.split('').map(x => Number(x)));
+    return lines.map((x, r) => x.split('').map((x, c) => ({ id: `${r},${c}`, h: Number(x)})));
 }
 
 // --------------------------------------------
 
-function takeWhileP(f, a) {
-    let res = [];
-    let p = undefined
-    a.forEach((x, i) => {
-        if (f(x, p)) res.push(x);
-        p = x;
-    });
-
-    U.log('res', res);
-
-    return res;
-
+function selectTrees(a, tree) {
+    return  R.reduce((acc, c) => {
+        if (acc.stop) return acc;
+        if (c.h < acc.max) {
+            acc.res.push(c);
+        } else {
+            acc.res.push(c);
+            acc.stop = true;
+        }
+        return acc;
+    }, { res: [], max: tree.h, stop: false }, a).res;
 }
+
+// --------------------------------------------
 
 function run(data) {
 
-    const width = data[0].length;
-    const height = data.length;
-    
-    // U.log('Hello');
-
     let scores = {};
+
+    function countTree(t, score) {
+        scores[t.id] = (scores[t.id] || [])
+        scores[t.id].push(score);
+    }
 
     data.forEach((line, r) => {
         line.forEach((tree, c) => {
-            let score1 = 0;
-            for (let a = c + 1; a < width; a++) {
-                if (line[a] < tree) score1++;
-                if (line[a] >= tree) { score1++; break; }
-            }
+            countTree(tree, selectTrees(R.drop(c + 1, line), tree).length);
+            countTree(tree, selectTrees(R.reverse(R.take(c, line)), tree).length);
+        })
+    });
 
-            let score2 = 0;
-            for (let a = c - 1; a >= 0; a--) {
-                if (line[a] < tree) score2++;
-                if (line[a] >= tree) { score2++; break; }
-            }
-
-            let score3 = 0;
-            for (let b = r + 1; b < height; b++) {
-                if (data[b][c] < tree) score3++;
-                if (data[b][c] >= tree) { score3++; break; }
-            }
-
-            let score4 = 0;
-            for (let b = r - 1; b >= 0; b--) {
-                if (data[b][c] < tree) score4++;
-                if (data[b][c] >= tree) { score4++; break; }
-            }
-
-            U.log(score1, score2, score3, score4);
-            scores[`${r},${c}`] = score1 * score2 * score3 * score4;
-        });
+    R.transpose(data).forEach((line, r) => {
+        line.forEach((tree, c) => {
+            countTree(tree, selectTrees(R.drop(c + 1, line), tree).length);
+            countTree(tree, selectTrees(R.reverse(R.take(c, line)), tree).length);
+        })
     });
 
     U.logf(scores);
 
-    // const result = 2 * width + 2 * height - 4;
+    const result = R.values(scores).map(x => R.reduce(R.multiply, 1, x));
 
-    const result = U.maxA(R.values(scores));
+    return U.maxA(result);
 
-    return result;
 }
-

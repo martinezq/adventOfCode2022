@@ -9,82 +9,45 @@ U.runWrapper(parse, run, {
 // --------------------------------------------
 
 function parse(lines) {
-    return lines.map(x => x.split('').map(x => Number(x)));
+    return lines.map((x, r) => x.split('').map((x, c) => ({ id: `${r},${c}`, h: Number(x)})));
 }
 
 // --------------------------------------------
 
-function takeWhileP(f, a) {
-    let res = [];
-    let p = undefined
-    a.forEach((x, i) => {
-        if (f(x, p)) res.push(x);
-        p = x;
-    });
-
-    U.log('res', res);
-
-    return res;
-
+function selectTrees(a) {
+    return  R.reduce((acc, c) => {
+        if (c.h > acc.max) {
+            acc.res.push(c);
+            acc.max = c.h;
+        }
+        return acc;
+    }, { res: [], max: -1 }, a).res;
 }
 
+// --------------------------------------------
+
 function run(data) {
-
-    const width = data[0].length;
-    const height = data.length;
     
-    // U.log('Hello');
+    let trees = {};
 
-    let counter = 0;
-
-    let buf = {};
-
-    data.forEach((line, i) => {
-        let maxA = 0;
-        for (let a = 0; a < width; a++) {
-            if (a === 0 || a === width - 1 || line[a] > line[maxA]) {
-                // U.log(a);
-                buf[`${i},${a}`] = 1
-                maxA = a;
-            }
-        }
-
-        maxA = width - 1;
-        for (let a = width - 1; a >= 0 ; a--) {
-            if (a === 0 || a === width - 1 || line[a] > line[maxA]) {
-                // U.log(a);
-                buf[`${i},${a}`] = 1
-                maxA = a;
-            }
-        }
-    });
-
-    for (let a = 0; a < width; a++) {
-        let maxB = 0;
-        for (let b = 0; b < height; b++) {
-            if (b === 0 || b === height - 1 || data[b][a] > data[maxB][a]) {
-                // U.log(a);
-                buf[`${b},${a}`] = 1
-                maxB = b;
-            }
-        }
-        maxB = height - 1;
-        for (let b = height - 1; b >= 0; b--) {
-            if (b === 0 || b === height - 1 || data[b][a] > data[maxB][a]) {
-                // U.log(a);
-                buf[`${b},${a}`] = 1
-                maxB = b;
-            }
-        }
-
+    function countTree(t) {
+        trees[t.id] = (trees[t.id] || 0) + 1;
     }
 
-    U.logf(buf);
+    data.forEach(line => {
+        selectTrees(line).forEach(countTree);
+        selectTrees(R.reverse(line)).forEach(countTree);
+    });
 
-    // const result = 2 * width + 2 * height - 4;
+    const data2 = R.transpose(data);
 
-    const result = R.values(buf).length;
+    data2.forEach(line => {
+        selectTrees(line).forEach(countTree);
+        selectTrees(R.reverse(line)).forEach(countTree);
+   });
 
-    return result;
+    U.logf(trees);
+
+    return R.keys(trees).length;
 }
 
