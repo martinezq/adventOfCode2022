@@ -153,6 +153,8 @@ const minA = (x) => x.reduce((p, c) => Math.min(p, c), Number.POSITIVE_INFINITY)
 const maxA = (x) => x.reduce((p, c) => Math.max(p, c), Number.NEGATIVE_INFINITY);
 const sumA = (x) => R.reduce(R.add, 0, x);
 
+const normalize = (x) => x > 0 ? 1 : (x < 0 ? -1 : 0);
+
 const sortByNumber = R.sortBy(Number);
 
 function splitStringByLength(str, len) {
@@ -238,6 +240,7 @@ module.exports = {
     log, logf, logm,
     minA, maxA, sortByNumber,
     sumA,
+    normalize,
     mapMatrix, filterMatrix,
     createMatrixFromPoints, matrixToTile,
     splitStringByLength,

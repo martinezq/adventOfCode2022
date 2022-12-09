@@ -19,16 +19,7 @@ function parse(lines) {
 
 function run(data) {
 
-    let visited = {};
-    let hp = [0, 0];
-    let tp = [0, 0];
-    let rope = R.times(x => [0, 0], 10);
-
-    const visit = ([x, y]) => visited[`${x},${y}`] = (visited[`${x},${y}`] || 0) + 1;
-    const eq = (a, b) => a[0] === b[0] && a[1] === b[1];
-    const norm = (a) => a > 0 ? 1 : (a < 0 ? -1 : 0);
-    
-    function simulateNode(num) {
+    function simulateNode(num, rope) {
         const hp = rope[num - 1];
         const tp = rope[num];
 
@@ -36,22 +27,34 @@ function run(data) {
         const dy = hp[1] - tp[1];
 
         if (Math.abs(dx) > 1) {
-            tp[0] += norm(dx);
+
+            tp[0] += U.normalize(dx);
+
             if (Math.abs(dy) > 0) {
-                tp[1] += norm(dy);
+                tp[1] += U.normalize(dy);
             }
+
         } else if (Math.abs(dy) > 1) {
-            tp[1] += norm(dy);
+
+            tp[1] += U.normalize(dy);
+
             if (Math.abs(dx) > 0) {
-                tp[0] += norm(dx);
-            }            
+                tp[0] += U.normalize(dx);
+            }
         }
 
     }
 
     // ----
+    
+    let rope = R.times(x => [0, 0], 10);
+    let visited = {};
 
-    visit(rope[9]);
+    const visit = ([x, y]) => visited[`${x},${y}`] = (visited[`${x},${y}`] || 0) + 1;
+
+    // ----
+
+    visit(R.last(rope));
 
     data.forEach(move => {
         // U.log(dir, steps);
@@ -62,15 +65,10 @@ function run(data) {
             if (dir === 'D') rope[0][1]++;
             if (dir === 'U') rope[0][1]--;
 
-            for (let n = 1; n < 10; n++) {
-                const prev = rope[n].concat([]);
-                simulateNode(n);
-                if (eq(prev, rope[n])) {
-                    break;
-                }
-            }
-            visit(rope[9]);
-            U.log(rope);            
+            R.times(n => simulateNode(n + 1, rope), rope.length - 1);
+            
+            visit(R.last(rope));
+            // U.log(rope);            
         }, steps);
 
     });

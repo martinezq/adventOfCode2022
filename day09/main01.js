@@ -19,56 +19,56 @@ function parse(lines) {
 
 function run(data) {
 
+    function simulateNode(num, rope) {
+        const hp = rope[num - 1];
+        const tp = rope[num];
+
+        const dx = hp[0] - tp[0];
+        const dy = hp[1] - tp[1];
+
+        if (Math.abs(dx) > 1) {
+
+            tp[0] += U.normalize(dx);
+
+            if (Math.abs(dy) > 0) {
+                tp[1] += U.normalize(dy);
+            }
+
+        } else if (Math.abs(dy) > 1) {
+
+            tp[1] += U.normalize(dy);
+
+            if (Math.abs(dx) > 0) {
+                tp[0] += U.normalize(dx);
+            }
+        }
+
+    }
+
+    // ----
+    
+    let rope = R.times(x => [0, 0], 2);
     let visited = {};
-    let hp = [0, 0];
-    let tp = [0, 0];
 
     const visit = ([x, y]) => visited[`${x},${y}`] = (visited[`${x},${y}`] || 0) + 1;
-    const eq = (a, b) => a[0] === b[a] && a[1] === b[1];
-    const norm = (a) => a > 0 ? 1 : (a < 0 ? -1 : 0);
-    
+
     // ----
 
-    visit(tp);
+    visit(R.last(rope));
 
-    data.forEach(([dir, steps]) => {
+    data.forEach(move => {
         // U.log(dir, steps);
+        const [dir, steps] = move;
         R.times(() => {
-            if (dir === 'R') {
-                hp[0]++;
-                if (Math.abs(hp[0] - tp[0]) > 1) {
-                    tp[0]++;
-                    const d = tp[1] - hp[1];
-                    tp[1] -= norm(d);
-                }
-            }
-            if (dir === 'L') {
-                hp[0]--;
-                if (Math.abs(hp[0] - tp[0]) > 1) {
-                    tp[0]--;
-                    const d = tp[1] - hp[1];
-                    tp[1] -= norm(d);
-                }
-            }
-            if (dir === 'D') {
-                hp[1]++;
-                if (Math.abs(hp[1] - tp[1]) > 1) {
-                    tp[1]++;
-                    const d = tp[0] - hp[0];
-                    tp[0] -= norm(d);
-                }
-            }
-            if (dir === 'U') {
-                hp[1]--;
-                if (Math.abs(hp[1] - tp[1]) > 1) {
-                    tp[1]--;
-                    const d = tp[0] - hp[0];
-                    tp[0] -= norm(d);
-                }
-            }
+            if (dir === 'R') rope[0][0]++;
+            if (dir === 'L') rope[0][0]--;
+            if (dir === 'D') rope[0][1]++;
+            if (dir === 'U') rope[0][1]--;
 
-            visit(tp);
-            U.log(hp, tp);            
+            R.times(n => simulateNode(n + 1, rope), rope.length - 1);
+            
+            visit(R.last(rope));
+            // U.log(rope);            
         }, steps);
 
     });
