@@ -1,6 +1,5 @@
 const R = require('ramda');
 const U = require('./utils');
-const A = require('./astar');
 
 U.runWrapper(parse, run, {
     hideRaw: true,
@@ -32,34 +31,12 @@ function parse(lines) {
 
 // --------------------------------------------
 
-
-
 function run({grid, start, end}) {
 
-    // const {start, end, gird} = data;
-    // U.log('Hello');
-
-    const graphWithWeight = new A.Graph(grid);
-	const startWithWeight = graphWithWeight.grid[start[0]][start[1]];
-	const endWithWeight = graphWithWeight.grid[end[0]][end[1]];
-	
-    const neighborsInternal = graphWithWeight.neighbors;
-
-    graphWithWeight.neighbors = function(node) {
-        const res = neighborsInternal.call(this, node);
-        return res.filter(x => x.weight - node.weight <= 1);
-    }
-
-    const resultWithWeight = A.astar.search(graphWithWeight, startWithWeight, endWithWeight, {
-        heuristic: (pos0, pos1) => {
-            var d1 = Math.abs(pos1.x - pos0.x);
-            var d2 = Math.abs(pos1.y - pos0.y);
-            return d1 + d2;
-          }
+    const path = U.findPath(grid, start, end, {
+        acceptNeighbor: (n, s) => n.weight - s.weight <= 1
     });
 
-    // const result = data.length;
-
-    return R.length(resultWithWeight);
+    return R.length(path);
 }
 

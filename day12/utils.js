@@ -1,5 +1,6 @@
 const fs = require('fs');
 const R = require('ramda');
+const A = require('../lib/astar');
 
 function runWrapper(parseFunc, mainFunc, opts) {
 
@@ -234,6 +235,59 @@ function processUsingRulesInternal(rules, context, input) {
 
 const processUsingRules = R.curry(processUsingRulesInternal);
 
+// ----------------------------------------------------------------------------
+
+/**
+ * 
+ * @param {*} grid  - 0 - wall, other - weight
+ * @param {*} start - [0, 0]
+ * @param {*} end   - [4, 4]
+ * @param {*} options - additional options: acceptNeighbor: (candidateNode, fromNode) => boolean
+ * @returns
+ * 
+ * @example
+ * ```
+    const grid =
+        [0, 0, 0, 0, 0]
+        [0, 1, 2, 3, 0],
+        [0, 2, 3, 2, 0],
+        [0, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0]                
+    ];
+
+    const start = [0, 0];
+    const end = [4, 4];
+
+    const path = U.findPath(grid, start, end, {
+        acceptNeighbor: (n, s) => n.weight - s.weight <= 1 // move only if weight difference is <= 1
+    });
+
+    console.log('Length', R.length(path));
+    console.log('Total cost', R.last(path).g);
+ 
+ * ```
+ */
+function findPath(grid, start, end, options) {
+    const graph = new A.Graph(grid);
+	const startNode = graph.grid[start[0]][start[1]];
+	const endNode = graph.grid[end[0]][end[1]];
+
+    if (options.acceptNeighbor) {
+        const neighborsInternal = graph.neighbors;
+
+        graph.neighbors = function(node) {
+            const res = neighborsInternal.call(this, node);
+            return res.filter(x => options.acceptNeighbor(x, node));
+        }
+    }
+
+    const result = A.astar.search(graph, startNode, endNode);
+
+    return result;
+}
+
+// ----------------------------------------------------------------------------
+
 module.exports = {
     runWrapper,
     parse,
@@ -245,5 +299,6 @@ module.exports = {
     createMatrixFromPoints, matrixToTile,
     splitStringByLength,
     dec2bin, bin2dec,
-    processUsingRules
+    processUsingRules,
+    findPath
 }

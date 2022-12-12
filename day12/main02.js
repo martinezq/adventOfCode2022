@@ -1,6 +1,5 @@
 const R = require('ramda');
 const U = require('./utils');
-const A = require('./astar');
 
 U.runWrapper(parse, run, {
     hideRaw: true,
@@ -36,47 +35,29 @@ function parse(lines) {
 
 function run({grid, start, end}) {
 
-    // const {start, end, gird} = data;
-    // U.log('Hello');
+    // ------------------------------------------------------------------------
 
     function test(grid, start, end) {
-
-        const graphWithWeight = new A.Graph(grid);
-        const startWithWeight = graphWithWeight.grid[start[0]][start[1]];
-        const endWithWeight = graphWithWeight.grid[end[0]][end[1]];
-        
-        const neighborsInternal = graphWithWeight.neighbors;
-
-        graphWithWeight.neighbors = function(node) {
-            const res = neighborsInternal.call(this, node);
-            return res.filter(x => x.weight - node.weight <= 1);
-        }
-
-        const resultWithWeight = A.astar.search(graphWithWeight, startWithWeight, endWithWeight);
-
-        return R.length(resultWithWeight);
+        const path = U.findPath(grid, start, end, {
+            acceptNeighbor: (n, s) => n.weight - s.weight <= 1
+        });
+    
+        return R.length(path);
     }
 
+    // ------------------------------------------------------------------------
+
     let best = Number.POSITIVE_INFINITY;
+    const startingGrid = U.mapMatrix(grid, x => x > 1 ? 0 : x);
 
-    const grid2 = U.mapMatrix(grid, x => x > 1 ? 0 : x);
+    const startingPoints = U.mapMatrix(grid, (x, i, j) => (test(startingGrid, start, [i, j]) > 0) || (i === start[0] && j === start[1]));
 
-    grid.forEach((line, i) => {
-        line.forEach((pos, j) => {
-            if (pos === 1) {
-                const x = test(grid2, start, [i, j])
-
-                if (x > 0) {
-                    const res = test(grid, [i, j], end);
-
-                    if (res < best) {
-                        best = res;
-                    }
-                }
-            }
-        })
+    U.mapMatrix(startingPoints, (x, i, j) => {
+        const result = x ? test(grid, [i, j], end) : Number.POSITIVE_INFINITY;
+        if (result < best) {
+            best = result;
+        }
     });
-
 
     return best;
 }
