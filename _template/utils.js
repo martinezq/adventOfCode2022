@@ -243,7 +243,7 @@ const processUsingRules = R.curry(processUsingRulesInternal);
  * @param {*} start - [0, 0]
  * @param {*} end   - [4, 4]
  * @param {*} options - additional options: acceptNeighbor: (candidateNode, fromNode) => boolean
- * @returns
+ * @returns path or [] if path cannot be found
  * 
  * @example
  * ```
