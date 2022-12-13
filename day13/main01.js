@@ -14,7 +14,7 @@ function parse(lines) {
 
 // --------------------------------------------
 
-function isCorrectPair(x, y) {
+function comparePackages(x, y) {
     // U.log(x, y);
 
     if (Array.isArray(x) && Array.isArray(y)) {
@@ -23,7 +23,7 @@ function isCorrectPair(x, y) {
 
             if (y[i] === undefined) return -1;
 
-            const comp = isCorrectPair(x[i], y[i]);
+            const comp = comparePackages(x[i], y[i]);
 
             if (comp > 0) return 1;
             if (comp < 0) return -1;
@@ -36,18 +36,17 @@ function isCorrectPair(x, y) {
 
 
     if (Array.isArray(x) && !Array.isArray(y)) {
-        return isCorrectPair(x, [y]);
+        return comparePackages(x, [y]);
     }
 
     if (!Array.isArray(x) && Array.isArray(y)) {
-        return isCorrectPair([x], y);
+        return comparePackages([x], y);
     }
 
     if (Number.isInteger(x) && Number.isInteger(y)) {
         return y - x;
     }
     
-    return false;
 }
 
 function run(data) {
@@ -55,7 +54,7 @@ function run(data) {
     // U.log('Hello');
 
     const res = data.map(a => {
-        const x = isCorrectPair(a[0], a[1]);
+        const x = comparePackages(a[0], a[1]);
         U.log(a, x);
         return x;
     }).map((x, i) => [i, x]);
