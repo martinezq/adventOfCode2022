@@ -119,6 +119,55 @@ function filterMatrix(matrix, func) {
     return matrix.flat().filter(func);
 }
 
+/**
+ * 
+ * @param {*} x1 
+ * @param {*} y1 
+ * @param {*} x2 
+ * @param {*} y2 
+ * @returns 
+ */
+function createLinePointsBetween(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    let line = [];
+
+    if (dx === 0) {
+        for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+            line.push([x1, y]);
+        }
+    } else if (dy === 0) {
+        for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+            line.push([x, y1]);
+        }
+    } else {
+        const m = dy / dx;
+        const b = y1 - m * x1;
+
+        if (m < 1) {
+            for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+                const y = m * x + b;
+                line.push([Math.round(x), Math.round(y)]);
+            }
+        } else {
+            for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+                const x = (y - b) / m;
+                line.push([Math.round(x), Math.round(y)]);
+            }
+        }
+    }
+    
+    return R.uniq(line);
+}
+
+/**
+ * 
+ * @param {*} points 
+ * @param {*} defValue 
+ * @param {*} f 
+ * @returns 
+ */
 function createMatrixFromPoints(points, defValue, f) {
     f = f || (() => 1);
 
@@ -134,17 +183,52 @@ function createMatrixFromPoints(points, defValue, f) {
     return m;
 }
 
+function calculateMatrixWindow(matrix, margin, blankChar) {
+    blankChar = blankChar || '.';
+    margin = margin || 0;
+
+    const transposedMatrix = R.transpose(matrix);
+
+    const firstRowIndex = transposedMatrix.findIndex(l => l.find(x => x !== blankChar));
+    const lastRowIndex = transposedMatrix.length - R.reverse(transposedMatrix).findIndex(l => l.find(x => x !== blankChar));
+    const firstLineIndex = matrix.findIndex(l => l.find(x => x !== blankChar));
+    const lastLineIndex = matrix.length - R.reverse(matrix).findIndex(l => l.find(x => x !== blankChar));
+
+    return {
+        x1: firstRowIndex - margin,
+        y1: firstLineIndex - margin,
+        x2: lastRowIndex + margin,
+        y2: lastLineIndex + margin
+    };
+}
+
 /**
  * Convert matrix to a tile string
- * @param {*} matrix 
+ * @param {*} matrix
+ * @param {*} opts
  * @returns 
+ * 
+ * @example
+ ```
+    const opts = { window: U.calculateMatrixWindow(matrix, 1) };
+ ```
  */
-function matrixToTile(matrix) {
+function matrixToTile(matrix, opts) {
+    const window = {
+        x1: opts?.window?.x1 || 0,
+        y1: opts?.window?.y1 || 0,
+        x2: opts?.window?.x2 || (matrix[0]?.length || 0),
+        y2: opts?.window?.y2 || matrix.length
+    };
+
+    const lines = R.take(window.y2 - window.y1, R.drop(window.y1, matrix));
+
     let str = '';
 
-    matrix.forEach(r => {
-        const line = r.join('') + '\n';
-        str += line;
+    lines.forEach(r => {
+        const line = R.take(window.x2 - window.x1, R.drop(window.x1, r));
+        const lineStr = line.join('') + '\n';
+        str += lineStr;
     });
 
     return str;
@@ -296,7 +380,8 @@ module.exports = {
     sumA,
     normalize,
     mapMatrix, filterMatrix,
-    createMatrixFromPoints, matrixToTile,
+    createLinePointsBetween, createMatrixFromPoints, 
+    calculateMatrixWindow, matrixToTile,
     splitStringByLength,
     dec2bin, bin2dec,
     processUsingRules,

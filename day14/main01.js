@@ -14,44 +14,10 @@ function parse(lines) {
 
 // --------------------------------------------
 
-function calcOffset(data) {
-    let mx = Number.POSITIVE_INFINITY
-
-    data.forEach(line => {
-        for (let i = 1; i < line.length; i++) {
-            const [x1, y1] = line[i - 1]
-            const [x2, y2] = line[i];
-
-            mx = U.minA([mx, x1, x2]);
-        }
-    });
-
-    return mx;
-}
-
-function createLineFromTo(x1, y1, x2, y2) {
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-
-    let line = [];
-
-    if (dx === 0) {
-        for (let y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
-            line.push([x1, y]);
-        }
-    }
-
-    if (dy === 0) {
-        for (let x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
-            line.push([x, y1]);
-        }
-    }
-    
-    return line;    
-}
 
 function toMatrix(data, offset) {
 
+    offset = offset || 0;
     let points = [];
 
     data.forEach(line => {
@@ -59,7 +25,7 @@ function toMatrix(data, offset) {
             const [x1, y1] = line[i - 1]
             const [x2, y2] = line[i];
 
-            const calculatedPoints = createLineFromTo(x1 - offset, y1, x2 - offset, y2);
+            const calculatedPoints = U.createLinePointsBetween(x1 - offset, y1, x2 - offset, y2);
 
             points = points.concat(calculatedPoints);
         }
@@ -68,20 +34,20 @@ function toMatrix(data, offset) {
     return U.createMatrixFromPoints(points, '.', (x) => '#');
 }
 
+
 // ---
 
 function run(data) {
     const ssx = 500;
     const ssy = 0;
 
-    const offset = calcOffset(data) - 1;
-
-    const m = toMatrix(data, offset);
+    const m = toMatrix(data);
+    m[ssy][ssx] = '+';
 
     const bottom = m.length - 1;
 
-
-    U.log(U.matrixToTile(m));
+    const window = U.calculateMatrixWindow(m, 1);
+    U.log(U.matrixToTile(m, { window }));
 
     let count = 0;
     let active = true;
@@ -91,7 +57,7 @@ function run(data) {
     while (active) {
 
         // new unit
-        let sx = ssx - offset;
+        let sx = ssx;
         let sy = ssy;
         
         while (true) {
@@ -120,10 +86,11 @@ function run(data) {
 
     }
 
-    U.log(U.matrixToTile(m));
+    U.log(U.matrixToTile(m, { window }));
 
     const result = count;
 
     return result;
 }
+
 
