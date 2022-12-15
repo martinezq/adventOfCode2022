@@ -372,6 +372,46 @@ function findPath(grid, start, end, options) {
 
 // ----------------------------------------------------------------------------
 
+/**
+ * Calculate Manhattan distance between two points
+ * @param {*} p1 - [0, 0]
+ * @param {*} p2 - [100, 200]
+ * @returns 
+ */
+function distanceManhattan(p1, p2) {
+    return Math.abs(p1[0] - p2[0]) + Math.abs(p1[1] - p2[1]);
+}
+
+/**
+ * Calculate crossing point of two segments
+ * @param {*} segment1 - [[0, 0], [100, 200]]
+ * @param {*} segment2 = [[40, 50], [200, 300]
+ * @returns [x, y] - values are rounded to integer
+ */
+function crossingPoint(segment1, segment2) {
+    const [x1, y1] = segment1[0];
+    const [x2, y2] = segment1[1];
+    const [x3, y3] = segment2[0];
+    const [x4, y4] = segment2[1];
+
+    const denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+    if (denominator === 0) {
+        return;
+    }
+
+    const x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denominator;
+    const y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denominator;
+
+    if (x < Math.min(x1, x2) || x > Math.max(x1, x2) || x < Math.min(x3, x4) || x > Math.max(x3, x4)) {
+        return;
+    }
+
+    return [Math.round(x), Math.round(y)];
+}
+
+// ----------------------------------------------------------------------------
+
 module.exports = {
     runWrapper,
     parse,
@@ -385,5 +425,7 @@ module.exports = {
     splitStringByLength,
     dec2bin, bin2dec,
     processUsingRules,
-    findPath
+    findPath,
+    distanceManhattan,
+    crossingPoint
 }
