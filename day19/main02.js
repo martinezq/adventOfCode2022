@@ -89,7 +89,7 @@ function simulateBlueprint(blueprint) {
     while (head) {
         let state = head.s;
 
-        const [time, ore, clay, obsidian, geode, oreRobots, clayRobots, obsidianRobots, geodeRobots] = state;
+        let [time, ore, clay, obsidian, geode, oreRobots, clayRobots, obsidianRobots, geodeRobots] = state;
 
         if (geode > bestValue) {
             bestValue = geode;
@@ -101,15 +101,32 @@ function simulateBlueprint(blueprint) {
             continue;
         }
 
+        // const maxOreRobots = oreRobots + Math.min(time / 4, (ore + (time - 1) * oreRobots) / costs.ore[0]);
+        // const maxOre = maxOreRobots * (0, time - 1);
 
-        const maxReqOre = Math.max(costs.ore.ore, costs.clay.ore, costs.obsidian.ore, costs.geode.ore);
+        // const maxClayRobots = clayRobots + Math.min(time / 4, maxOre / costs.clay[0]);
+        // const maxClay = clay + maxClayRobots * (0, time - 1);
+
+        // const maxObsidianRobots = obsidianRobots + Math.min(time / 4, maxOre / costs.obsidian[0], maxClay / costs.obsidian[1]);
+        // const maxObsidian = obsidian + maxObsidianRobots * (0, time - 2);
+        
+        // const maxGeodeRobots = geodeRobots + Math.min(time / 4, maxClay / costs.geode[1], maxObsidian / costs.geode[2]);
+        // const maxGeode = geode + maxGeodeRobots * (0, time - 3);
+
+        // if (maxGeode < bestValue) {
+        //     // U.log('ignore', state);
+        //     continue;
+        // }
+
+        const maxReqOre = Math.max(costs.ore[0], costs.clay[0], costs.obsidian[0], costs.geode[0]);
 
         if (oreRobots > maxReqOre) oreRobots = maxReqOre;
-        if (clayRobots > costs.obsidian.clay) clayRobots = costs.obsidian.clay;
-        if (obsidianRobots > costs.geode.obsidian) obsidianRobots = costs.geode.obsidian;
+        if (clayRobots > costs.obsidian[1]) clayRobots = costs.obsidian[1];
+        if (obsidianRobots > costs.geode[2]) obsidianRobots = costs.geode[2];
+
         if (ore > time * maxReqOre - oreRobots * (time - 1)) ore = time * maxReqOre - oreRobots * (time - 1);
-        if (clay > time * costs.obsidian.clay - clayRobots * (time - 1)) clay = time * costs.obsidian.clay - clayRobots * (time - 1);
-        if (obsidian > time * costs.geode.obsidian - obsidianRobots * (time - 1)) obsidian = time * costs.geode.obsidian - obsidianRobots * (time - 1);
+        if (clay > time * costs.obsidian[1] - clayRobots * (time - 1)) clay = time * costs.obsidian[1] - clayRobots * (time - 1);
+        if (obsidian > time * costs.geode[2] - obsidianRobots * (time - 1)) obsidian = time * costs.geode[2] - obsidianRobots * (time - 1);
 
         const state2 = [time, ore, clay, obsidian, geode, oreRobots, clayRobots, obsidianRobots, geodeRobots];
 
@@ -117,14 +134,14 @@ function simulateBlueprint(blueprint) {
 
         const key =
             state2[0] +
-            10 * state2[1] +
-            100 * state2[2] +
-            1000 * state2[3] +
-            10000 * state2[4] +
-            100000 * state2[5] +
-            1000000 * state2[6] +
-            10000000 * state2[7] +
-            100000000 * state2[8];
+            100 * state2[1] +
+            10000 * state2[2] +
+            1000000 * state2[3] +
+            100000000 * state2[4] +
+            10000000000 * state2[5] +
+            1000000000000 * state2[6] +
+            100000000000000 * state2[7] +
+            10000000000000000 * state2[8];
             
         
         if (seen[key]) {
@@ -177,3 +194,4 @@ function run(data) {
 }
 
 
+// 18816
